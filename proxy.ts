@@ -5,22 +5,20 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const { pathname } = req.nextUrl;
   
-  const publicRoutes = ["/login", "/register", "/forgot-password"];
+  // Public routes - dashboard mein koi public page nahi hai
+  // Sab protected routes hain
   
-  // Agar public route hai to allow karo (yeh dashboard mein exist nahi karte, isliye yahan aayega hi nahi)
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next();
-  }
-  
-  // Agar token nahi hai → website ke login page pe redirect karo
+  // Agar token nahi hai → website ke login page pe redirect
   if (!token) {
     const websiteLoginUrl = "https://website-ten-lemon-5x7d9qtg7q.vercel.app/login";
+    console.log(`🔄 No token, redirecting to: ${websiteLoginUrl}`);
     return NextResponse.redirect(websiteLoginUrl);
   }
 
   return NextResponse.next();
 }
 
+// Apply to all dashboard routes
 export const config = {
-  matcher: ["/dashboard/:path*", "/settings/:path*"], // Sirf protected routes ke liye
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
