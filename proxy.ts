@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
+  // Check multiple possible token locations
+  const tokenFromCookie = req.cookies.get("token")?.value;
+  const sessionFromCookie = req.cookies.get("sessionId")?.value;
+  
+  // Also check headers (if token sent via Authorization header)
+  const authHeader = req.headers.get("authorization");
+  const tokenFromHeader = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+  
+  const token = tokenFromCookie || sessionFromCookie || tokenFromHeader;
+  
   const { pathname } = req.nextUrl;
   
-  // Public routes - dashboard mein koi public page nahi hai
-  // Sab protected routes hain
+  console.log(`🔍 Dashboard Proxy - Path: ${pathname}`);
+  console.log(`🔍 Token from cookie: ${!!tokenFromCookie}`);
+  console.log(`🔍 Session from cookie: ${!!sessionFromCookie}`);
+  console.log(`🔍 Token from header: ${!!tokenFromHeader}`);
+  console.log(`🔍 Final token present: ${!!token}`);
   
   // Agar token nahi hai → website ke login page pe redirect
   if (!token) {
@@ -15,6 +27,7 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(websiteLoginUrl);
   }
 
+  console.log(`✅ Token found, allowing access`);
   return NextResponse.next();
 }
 
