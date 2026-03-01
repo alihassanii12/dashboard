@@ -12,9 +12,8 @@ export function proxy(req: NextRequest) {
   }
   
   if (!token) {
-    // ✅ Environment variable se website URL lo
-    const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://website-ten-lemon-5x7d9qtg7q.vercel.app";
-    const loginUrl = `${websiteUrl}/login`;
+    // ✅ Website URL + /login
+    const loginUrl = "https://website-ten-lemon-5x7d9qtg7q.vercel.app/login";
     return NextResponse.redirect(loginUrl);
   }
 
