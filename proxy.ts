@@ -4,30 +4,29 @@ import type { NextRequest } from "next/server";
 export function proxy(req: NextRequest) {
   // Check multiple possible token locations
   const tokenFromCookie = req.cookies.get("token")?.value;
-  const sessionFromCookie = req.cookies.get("sessionId")?.value;
+  const tokenFromHeader = req.headers.get("authorization")?.startsWith("Bearer ") 
+    ? req.headers.get("authorization")?.substring(7) 
+    : null;
   
-  // Also check headers (if token sent via Authorization header)
-  const authHeader = req.headers.get("authorization");
-  const tokenFromHeader = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-  
-  const token = tokenFromCookie || sessionFromCookie || tokenFromHeader;
+  const token = tokenFromCookie || tokenFromHeader;
   
   const { pathname } = req.nextUrl;
   
-  console.log(`🔍 Dashboard Proxy - Path: ${pathname}`);
-  console.log(`🔍 Token from cookie: ${!!tokenFromCookie}`);
-  console.log(`🔍 Session from cookie: ${!!sessionFromCookie}`);
-  console.log(`🔍 Token from header: ${!!tokenFromHeader}`);
-  console.log(`🔍 Final token present: ${!!token}`);
+  console.log(`🔍 Dashboard Middleware - Path: ${pathname}`);
+  console.log(`🔍 Token present: ${!!token}`);
   
-  // Agar token nahi hai → website ke login page pe redirect
-  if (!token) {
+  // Public routes in dashboard (if any)
+  const publicRoutes = ["/login", "/register"];
+  
+  // Agar token nahi hai → WEBSITE login page pe redirect
+  if (!token && !publicRoutes.includes(pathname)) {
     const websiteLoginUrl = "https://website-ten-lemon-5x7d9qtg7q.vercel.app/login";
-    console.log(`🔄 No token, redirecting to: ${websiteLoginUrl}`);
+    console.log(`🔄 No token, redirecting to website login: ${websiteLoginUrl}`);
     return NextResponse.redirect(websiteLoginUrl);
   }
 
-  console.log(`✅ Token found, allowing access`);
+  // Token hai to dashboard access allow
+  console.log(`✅ Token found, allowing access to dashboard`);
   return NextResponse.next();
 }
 
