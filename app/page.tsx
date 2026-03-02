@@ -66,13 +66,14 @@ import {
 } from "lucide-react";
 
 // ==================== API CONFIGURATION ====================
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://image-library-backend-5ola.vercel.app';
+const WEBSITE_URL = "https://website-ten-lemon-5x7d9qtg7q.vercel.app";
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
 axios.defaults.timeout = 30000;
 
-// Define types
+// ==================== TYPES ====================
 interface User {
   id: number;
   name: string;
@@ -127,7 +128,7 @@ interface LockState {
   showConfirmPassword: boolean;
 }
 
-// Dropdown Menu Component
+// ==================== DROPDOWN MENU COMPONENT ====================
 interface DropdownMenuProps {
   trigger: React.ReactNode;
   items: {
@@ -183,7 +184,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, items, align = 'ri
   );
 };
 
-// Move Modal Component
+// ==================== MOVE MODAL COMPONENT ====================
 interface MoveModalProps {
   show: boolean;
   onClose: () => void;
@@ -379,7 +380,7 @@ const MoveModal: React.FC<MoveModalProps> = ({
   );
 };
 
-// Upload Modal Component
+// ==================== UPLOAD MODAL COMPONENT ====================
 interface UploadModalProps {
   show: boolean;
   onClose: () => void;
@@ -702,7 +703,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   );
 };
 
-// Create Album Modal Component
+// ==================== CREATE ALBUM MODAL ====================
 interface CreateAlbumModalProps {
   show: boolean;
   onClose: () => void;
@@ -766,7 +767,7 @@ const CreateAlbumModal: React.FC<CreateAlbumModalProps> = ({
   );
 };
 
-// Create Folder Modal Component
+// ==================== CREATE FOLDER MODAL ====================
 interface CreateFolderModalProps {
   show: boolean;
   onClose: () => void;
@@ -824,7 +825,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   );
 };
 
-// Password Modal Component
+// ==================== PASSWORD MODAL ====================
 interface PasswordModalProps {
   show: boolean;
   onClose: () => void;
@@ -986,7 +987,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   );
 };
 
-// Edit Name Modal Component
+// ==================== EDIT NAME MODAL ====================
 interface EditNameModalProps {
   show: boolean;
   onClose: () => void;
@@ -1038,7 +1039,7 @@ const EditNameModal: React.FC<EditNameModalProps> = ({
   );
 };
 
-// Media Modal Component
+// ==================== MEDIA MODAL ====================
 interface MediaModalProps {
   media: UploadedMedia;
   onClose: () => void;
@@ -1415,7 +1416,7 @@ const MediaModal: React.FC<MediaModalProps> = ({
   );
 };
 
-// Media Item Component
+// ==================== MEDIA ITEM COMPONENT ====================
 interface MediaItemProps {
   item: UploadedMedia;
   viewMode: 'grid' | 'list';
@@ -1706,20 +1707,21 @@ const MediaItem: React.FC<MediaItemProps> = ({
   );
 };
 
+// ==================== MAIN DASHBOARD COMPONENT ====================
 const DashboardPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  
+  // Media states
   const [media, setMedia] = useState<UploadedMedia[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [trashMedia, setTrashMedia] = useState<UploadedMedia[]>([]);
   const [lockedMedia, setLockedMedia] = useState<UploadedMedia[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
-  const [isUploading, setIsUploading] = useState<boolean>(false);
   
+  // UI states
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("For You");
@@ -1734,23 +1736,6 @@ const DashboardPage = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [showBulkActions, setShowBulkActions] = useState<boolean>(false);
-  const [stats, setStats] = useState({
-    totalItems: 0,
-    totalVideos: 0,
-    totalImages: 0,
-    totalAlbums: 0,
-    totalStorage: 0
-  });
-  const [showCreateAlbum, setShowCreateAlbum] = useState<boolean>(false);
-  const [newAlbumName, setNewAlbumName] = useState<string>("");
-  const [newAlbumDescription, setNewAlbumDescription] = useState<string>("");
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
-  const [newFolderName, setNewFolderName] = useState<string>("");
-  const [nestedAlbums, setNestedAlbums] = useState<Album[]>([]);
-  const [breadcrumb, setBreadcrumb] = useState<any[]>([]);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isSelectionMode, setIsSelectionMode] = useState<boolean>(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState<number>(-1);
@@ -1760,6 +1745,7 @@ const DashboardPage = () => {
   const [sessionExpiryTime, setSessionExpiryTime] = useState<Date | null>(null);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
 
+  // Modal states
   const [showMoveModal, setShowMoveModal] = useState<boolean>(false);
   const [mediaToMove, setMediaToMove] = useState<string | null>(null);
   const [selectedTargetAlbum, setSelectedTargetAlbum] = useState<string | null>(null);
@@ -1785,317 +1771,175 @@ const DashboardPage = () => {
   const [accessTimeLeft, setAccessTimeLeft] = useState<number>(0);
   const [showTimer, setShowTimer] = useState<boolean>(false);
 
+  // File upload states
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const [showCreateAlbum, setShowCreateAlbum] = useState<boolean>(false);
+  const [newAlbumName, setNewAlbumName] = useState<string>("");
+  const [newAlbumDescription, setNewAlbumDescription] = useState<string>("");
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
+  const [newFolderName, setNewFolderName] = useState<string>("");
+  const [nestedAlbums, setNestedAlbums] = useState<Album[]>([]);
+  const [breadcrumb, setBreadcrumb] = useState<any[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [stats, setStats] = useState({
+    totalItems: 0,
+    totalVideos: 0,
+    totalImages: 0,
+    totalAlbums: 0,
+    totalStorage: 0
+  });
+
+  // Refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const activityCheckRef = useRef<NodeJS.Timeout | null>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Add axios interceptor for token refresh
+  // ==================== AUTHENTICATION CHECK ====================
   useEffect(() => {
-    let isRefreshing = false;
-    let failedQueue: any[] = [];
-
-    const processQueue = (error: any, token: string | null = null) => {
-      failedQueue.forEach(prom => {
-        if (error) {
-          prom.reject(error);
-        } else {
-          prom.resolve(token);
-        }
-      });
-      failedQueue = [];
-    };
-
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status !== 401 || originalRequest._retry) {
-          return Promise.reject(error);
-        }
-
-        if (originalRequest.url.includes('/auth/refresh')) {
-          router.push("/login");
-          return Promise.reject(error);
-        }
-
-        if (isRefreshing) {
-          return new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          })
-            .then(() => {
-              return axios(originalRequest);
-            })
-            .catch((err) => {
-              return Promise.reject(err);
-            });
-        }
-
-        originalRequest._retry = true;
-        isRefreshing = true;
-
-        try {
-          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
-            withCredentials: true
-          });
-          
-          processQueue(null);
-          return axios(originalRequest);
-        } catch (refreshError) {
-          processQueue(refreshError, null);
-          toast.error('Session expired. Please login again.');
-          router.push("/login");
-          return Promise.reject(refreshError);
-        } finally {
-          isRefreshing = false;
-        }
-      }
-    );
-
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, [router]);
-
-  // Check session expiry
-  useEffect(() => {
-    const checkSession = async () => {
+    const checkAuth = async () => {
       try {
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-        if (token) {
-          const tokenValue = token.split('=')[1];
-          const base64Url = tokenValue.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const payload = JSON.parse(atob(base64));
-          const expiryDate = new Date(payload.exp * 1000);
-          setSessionExpiryTime(expiryDate);
-          
-          const timeUntilExpiry = expiryDate.getTime() - Date.now();
-          if (timeUntilExpiry > 0 && timeUntilExpiry < 2 * 60 * 1000) {
-            setShowSessionWarning(true);
-          } else {
-            setShowSessionWarning(false);
+        console.log('🔍 Checking authentication...');
+        console.log('📍 Current URL:', window.location.href);
+        
+        // Check URL for token (from login redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
+        const refreshTokenFromUrl = urlParams.get('refreshToken');
+        
+        console.log('📍 URL params:', { 
+          token: tokenFromUrl ? '✅' : '❌', 
+          refreshToken: refreshTokenFromUrl ? '✅' : '❌' 
+        });
+        
+        // If token in URL, save it
+        if (tokenFromUrl) {
+          localStorage.setItem('token', tokenFromUrl);
+          if (refreshTokenFromUrl) {
+            localStorage.setItem('refreshToken', refreshTokenFromUrl);
           }
+          
+          // Clean URL (remove token params)
+          window.history.replaceState({}, '', window.location.pathname);
+          console.log('✅ Token saved from URL');
         }
-      } catch (error) {
-        console.error("Failed to decode token", error);
-      }
-    };
-
-    checkSession();
-    const interval = setInterval(checkSession, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Close mobile search when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
-        setShowMobileSearch(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // File previews
-  useEffect(() => {
-    if (files.length === 0) {
-      setPreviews([]);
-      return;
-    }
-
-    const objectUrls = files.map(file => URL.createObjectURL(file));
-    setPreviews(objectUrls);
-
-    return () => objectUrls.forEach(url => URL.revokeObjectURL(url));
-  }, [files]);
-
-  // Check locked access on mount
-  useEffect(() => {
-    checkLockedStatus();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (activityCheckRef.current) clearInterval(activityCheckRef.current);
-    };
-  }, []);
-
-  // Update user storage
-  const updateUserStorage = (storageData: { used: number; total: number; percentage: number }) => {
-    setUser(prev => prev ? {
-      ...prev,
-      storageUsed: storageData.used,
-      storageTotal: storageData.total
-    } : null);
-  };
-
-  // Fetch storage info with error handling
-  const fetchStorageInfo = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/media/storage`, {
-        withCredentials: true
-      }).catch(err => {
-        console.error('Storage fetch error:', err);
-        return { data: { used: 0, total: 15 * 1024 * 1024 * 1024, percentage: 0 } };
-      });
-      
-      updateUserStorage(res.data);
-    } catch (err) {
-      console.error('Failed to fetch storage:', err);
-      setUser(prev => prev ? {
-        ...prev,
-        storageUsed: 0,
-        storageTotal: 15 * 1024 * 1024 * 1024
-      } : null);
-    }
-  };
-
-  // Periodic storage update
-  useEffect(() => {
-    fetchStorageInfo();
-    const interval = setInterval(fetchStorageInfo, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkAccessExpiration = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/locked/check-access`, {
-        withCredentials: true
-      });
-      
-      if (!res.data.hasAccess) {
-        setHasLockedAccess(false);
-        if (selectedCategory === "Locked") {
-          setSelectedCategory("For You");
-          toast.error('Locked folder access expired');
+        
+        // Check localStorage for token
+        const token = localStorage.getItem('token');
+        console.log('📦 Token in localStorage:', token ? '✅' : '❌');
+        
+        // Also check cookies (for debugging)
+        console.log('🍪 Document cookies:', document.cookie);
+        
+        if (!token) {
+          console.log('❌ No token found, redirecting to website login');
+          toast.error('Please login first');
+          setTimeout(() => {
+            window.location.href = `${WEBSITE_URL}/login`;
+          }, 1000);
+          return;
         }
-        setShowTimer(false);
-      } else {
-        setShowTimer(true);
-      }
-    } catch (err) {
-      console.error('Access check failed:', err);
-    }
-  };
-
-  const refreshAccess = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/locked/refresh-access`, {}, {
-        withCredentials: true
-      });
-    } catch (err) {
-      console.error('Failed to refresh access:', err);
-    }
-  };
-
-  const checkLockedStatus = async () => {
-    try {
-      const passwordRes = await axios.get(`${API_BASE_URL}/locked/has-password`, {
-        withCredentials: true
-      }).catch(() => ({ data: { hasPassword: false } }));
-      setHasLockPassword(passwordRes.data.hasPassword);
-
-      const accessRes = await axios.get(`${API_BASE_URL}/locked/check-access`, {
-        withCredentials: true
-      }).catch(() => ({ data: { hasAccess: false } }));
-      setHasLockedAccess(accessRes.data.hasAccess);
-    } catch (err) {
-      console.error('Locked status check failed:', err);
-    }
-  };
-
-  const fetchAlbumTree = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/albums/all`, {
-        withCredentials: true
-      }).catch(() => ({ data: [] }));
-      
-      const albumsWithFolders = res.data.map((a: any) => ({
-        ...a,
-        isFolder: a.isFolder || false
-      }));
-      
-      setAlbumTree(albumsWithFolders);
-    } catch (err) {
-      console.error('Failed to fetch album tree:', err);
-    }
-  }, []);
-
-  const moveMediaToAlbum = async (mediaId: string, targetAlbumId: string | null) => {
-    const moveToast = toast.loading('Moving item...');
-
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/albums/move-media`,
-        { mediaId, targetAlbumId },
-        { withCredentials: true }
-      );
-
-      const updatedMedia = res.data.media;
-      
-      setMedia(prev => prev.map(item => 
-        item._id === mediaId ? updatedMedia : item
-      ));
-      
-      if (hasLockedAccess) {
-        setLockedMedia(prev => prev.map(item => 
-          item._id === mediaId ? updatedMedia : item
-        ));
-      }
-
-      if (selectedAlbum && updatedMedia.albumId !== selectedAlbum._id) {
-        if (selectedCategory === "Locked") {
-          setLockedMedia(prev => prev.filter(item => item._id !== mediaId));
-        } else {
-          setMedia(prev => prev.filter(item => item._id !== mediaId));
+        
+        // Set token in axios headers
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.defaults.withCredentials = true;
+        
+        // Verify token with backend
+        console.log('🔍 Verifying token with backend...');
+        const userRes = await axios.get(`${API_BASE_URL}/auth/me`, {
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache'
+          },
+          timeout: 10000
+        }).catch(err => {
+          console.error('❌ Auth API error:', err.response?.status, err.message);
+          throw err;
+        });
+        
+        console.log('✅ User response:', userRes.data);
+        
+        if (!userRes.data.user) {
+          throw new Error('No user data');
         }
-      }
-
-      toast.success(res.data.message, { id: moveToast });
-      setShowMoveModal(false);
-      setMediaToMove(null);
-      setSelectedTargetAlbum(null);
-      setCurrentFolderPath([]);
-      
-      fetchData();
-    } catch (err: any) {
-      console.error('Move error:', err);
-      toast.error(err.response?.data?.error || 'Failed to move item', { id: moveToast });
-    }
-  };
-
-  const fetchData = useCallback(async () => {
-    setError(null);
-    
-    try {
-      const userRes = await axios.get(`${API_BASE_URL}/auth/me`, {
-        withCredentials: true
-      }).catch(err => {
-        console.error("Auth me error:", err);
+        
+        setUser(userRes.data.user);
+        setAuthChecked(true);
+        setLoading(false);
+        
+        // Show success toast
+        toast.success(`Welcome back, ${userRes.data.user.name}!`);
+        
+        // Fetch other data
+        fetchData(token);
+        
+      } catch (err: any) {
+        console.error('❌ Auth check failed:', err);
+        
+        let errorMessage = 'Authentication failed';
         if (err.response?.status === 401) {
-          router.push("/login");
+          errorMessage = 'Session expired. Please login again.';
+        } else if (err.code === 'ECONNABORTED') {
+          errorMessage = 'Connection timeout. Please try again.';
+        } else if (err.message) {
+          errorMessage = err.message;
         }
-        throw err;
-      });
-      
-      if (!userRes.data.user) {
-        router.push("/login");
-        return;
+        
+        toast.error(errorMessage);
+        
+        // Clear storage and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        
+        setTimeout(() => {
+          window.location.href = `${WEBSITE_URL}/login`;
+        }, 2000);
       }
+    };
 
-      setUser(userRes.data.user);
+    checkAuth();
+  }, []);
 
-      const [mediaRes, trashRes, albumsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/media`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE_URL}/media/trash/all`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE_URL}/albums/all`, { withCredentials: true }).catch(() => ({ data: [] }))
+  // ==================== DATA FETCHING ====================
+  const fetchData = async (token: string) => {
+    try {
+      console.log('📁 Fetching media data...');
+      
+      const [mediaRes, trashRes, albumsRes, storageRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/media`, { 
+          withCredentials: true,
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(err => {
+          console.error('Media fetch error:', err);
+          return { data: [] };
+        }),
+        
+        axios.get(`${API_BASE_URL}/media/trash/all`, { 
+          withCredentials: true,
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => ({ data: [] })),
+        
+        axios.get(`${API_BASE_URL}/albums/all`, { 
+          withCredentials: true,
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => ({ data: [] })),
+        
+        axios.get(`${API_BASE_URL}/media/storage`, { 
+          withCredentials: true,
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => ({ data: { used: 0, total: 15 * 1024 * 1024 * 1024 } }))
       ]);
 
-      console.log("📁 Media from API:", mediaRes.data);
+      console.log(`📁 Media loaded: ${mediaRes.data.length} items`);
+      console.log(`📁 Trash loaded: ${trashRes.data.length} items`);
+      console.log(`📁 Albums loaded: ${albumsRes.data.length} items`);
+
       setMedia(mediaRes.data);
       setTrashMedia(trashRes.data);
 
@@ -2106,74 +1950,98 @@ const DashboardPage = () => {
       }));
       setAlbums(albumsWithFolderFlag);
 
-      if (hasLockedAccess) {
-        try {
+      // Update user storage
+      if (storageRes.data && user) {
+        setUser(prev => prev ? {
+          ...prev,
+          storageUsed: storageRes.data.used || 0,
+          storageTotal: storageRes.data.total || 15 * 1024 * 1024 * 1024
+        } : null);
+      }
+
+      // Check locked access status
+      try {
+        const accessRes = await axios.get(`${API_BASE_URL}/locked/check-access`, {
+          withCredentials: true,
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setHasLockedAccess(accessRes.data.hasAccess);
+        
+        if (accessRes.data.hasAccess) {
           const lockedRes = await axios.get(`${API_BASE_URL}/media/locked/all`, {
-            withCredentials: true
+            withCredentials: true,
+            headers: { 'Authorization': `Bearer ${token}` }
           }).catch(() => ({ data: [] }));
           setLockedMedia(lockedRes.data);
-        } catch (lockedErr) {
-          console.error("Error fetching locked media:", lockedErr);
-          setLockedMedia([]);
+          console.log(`🔒 Locked media: ${lockedRes.data.length} items`);
         }
+      } catch (err) {
+        console.error('Locked access check failed:', err);
       }
 
-      setLoading(false);
-      
-    } catch (err: any) {
-      console.error("Auth error:", err);
-      
-      if (err.response?.status === 401) {
-        router.push("/login");
-        return;
-      }
-      
-      setError(err.response?.data?.error || "Failed to load data");
-      setLoading(false);
+    } catch (err) {
+      console.error('❌ Data fetch error:', err);
+      toast.error('Failed to load some data');
     }
-  }, [router, hasLockedAccess]);
+  };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Timer for access expiration
-  useEffect(() => {
-    if (hasLockedAccess) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        checkAccessExpiration();
-      }, 1000);
-
-      if (activityCheckRef.current) clearInterval(activityCheckRef.current);
-      activityCheckRef.current = setInterval(() => {
-        if (selectedCategory === "Locked") {
-          refreshAccess();
-        }
-      }, 4 * 60 * 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (activityCheckRef.current) clearInterval(activityCheckRef.current);
-      setShowTimer(false);
+  // ==================== HELPER FUNCTIONS ====================
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = bytes;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
     }
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  };
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (activityCheckRef.current) clearInterval(activityCheckRef.current);
-    };
-  }, [hasLockedAccess, selectedCategory]);
-
-  // Update stats
-  useEffect(() => {
-    const allMedia = [...media, ...trashMedia, ...(hasLockedAccess ? lockedMedia : [])];
-    setStats({
-      totalItems: allMedia.length,
-      totalVideos: allMedia.filter(m => m.type === 'video').length,
-      totalImages: allMedia.filter(m => m.type === 'image').length,
-      totalAlbums: albums.length,
-      totalStorage: allMedia.reduce((acc, m) => acc + (m.size || 0), 0)
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
-  }, [media, trashMedia, lockedMedia, albums, hasLockedAccess]);
+  };
+
+  const handleLogout = async () => {
+    const logoutToast = toast.loading('Logging out...');
+    
+    try {
+      await axios.post(
+        `${API_BASE_URL}/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      
+      toast.success('Logged out successfully', { id: logoutToast });
+      
+      setTimeout(() => {
+        window.location.href = `${WEBSITE_URL}/login`;
+      }, 1000);
+    } catch (err) {
+      console.error("Logout failed:", err);
+      toast.error('Logout failed', { id: logoutToast });
+    }
+  };
+
+  const categories = [
+    { name: "For You", icon: Sparkles },
+    { name: "Recent", icon: Clock },
+    { name: "Images", icon: ImageIcon },
+    { name: "Videos", icon: Video },
+    { name: "Albums", icon: Folder },
+    { name: "Favorites", icon: Star },
+    { name: "Locked", icon: Lock },
+    { name: "Trash", icon: Trash2 }
+  ];
 
   // Get display media based on category
   const getDisplayMedia = useCallback((): UploadedMedia[] => {
@@ -2195,7 +2063,6 @@ const DashboardPage = () => {
       ).slice(0, 20);
     } else if (selectedCategory === "For You") {
       filtered = media.filter(item => !item.albumId);
-      console.log(`📁 For You view: Showing ${filtered.length} files not in any folder`);
     } else if (selectedCategory === "Albums") {
       filtered = [];
     } else {
@@ -2203,9 +2070,7 @@ const DashboardPage = () => {
     }
 
     if (selectedAlbum) {
-      console.log(`📁 Filtering media for folder: ${selectedAlbum.name} (${selectedAlbum._id})`);
       filtered = media.filter(item => item.albumId === selectedAlbum._id);
-      console.log(`📁 Media after filter: ${filtered.length} items in folder`);
     }
 
     if (searchQuery) {
@@ -2238,1006 +2103,20 @@ const DashboardPage = () => {
     setAllDisplayMedia(displayMedia);
   }, [displayMedia]);
 
-  const handlePreviousMedia = () => {
-    if (currentMediaIndex > 0) {
-      const newIndex = currentMediaIndex - 1;
-      setCurrentMediaIndex(newIndex);
-      setSelectedMedia(allDisplayMedia[newIndex]);
-      setNewName(allDisplayMedia[newIndex].originalName);
-    }
-  };
-
-  const handleNextMedia = () => {
-    if (currentMediaIndex < allDisplayMedia.length - 1) {
-      const newIndex = currentMediaIndex + 1;
-      setCurrentMediaIndex(newIndex);
-      setSelectedMedia(allDisplayMedia[newIndex]);
-      setNewName(allDisplayMedia[newIndex].originalName);
-    }
-  };
-
-  const categories = [
-    { name: "For You", icon: Sparkles },
-    { name: "Recent", icon: Clock },
-    { name: "Images", icon: ImageIcon },
-    { name: "Videos", icon: Video },
-    { name: "Albums", icon: Folder },
-    { name: "Favorites", icon: Star },
-    { name: "Locked", icon: Lock },
-    { name: "Trash", icon: Trash2 }
-  ];
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const fileArray = Array.from(e.target.files);
-      setFiles(fileArray);
-    }
-  };
-
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (files.length === 0) {
-      toast.error("Please select files to upload.");
-      return;
-    }
-
-    const totalUploadSize = files.reduce((acc, f) => acc + f.size, 0);
-    if (user && (user.storageUsed + totalUploadSize) > user.storageTotal) {
-      toast.error("Not enough storage space!");
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress({});
-
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append("files", file);
-    });
-
-    if (selectedAlbum) {
-      console.log(`📁 Uploading to folder: ${selectedAlbum.name} (${selectedAlbum._id})`);
-      formData.append("albumId", selectedAlbum._id);
-    } else {
-      console.log("📁 Uploading to main library (no folder)");
-    }
-
-    const uploadToast = toast.loading(`Preparing to upload ${files.length} files...`);
-
-    try {
-      const fileProgress: { [key: string]: number } = {};
-      files.forEach((file, index) => {
-        fileProgress[`file-${index}`] = 0;
-      });
-
-      const res = await axios.post(
-        `${API_BASE_URL}/media/upload`,
-        formData,
-        { 
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const totalPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              
-              const loadedPerFile = progressEvent.loaded / files.length;
-              files.forEach((_, index) => {
-                const fileLoaded = Math.min(loadedPerFile * (index + 1), files[index]?.size || 0);
-                const filePercent = Math.min(100, Math.round((fileLoaded / (files[index]?.size || 1)) * 100));
-                fileProgress[`file-${index}`] = filePercent;
-              });
-
-              setUploadProgress({ 
-                overall: totalPercent,
-                ...fileProgress
-              });
-              
-              const completedFiles = Object.values(fileProgress).filter(p => p === 100).length;
-              toast.loading(
-                `Uploading: ${totalPercent}% complete | ${completedFiles}/${files.length} files done`, 
-                { id: uploadToast }
-              );
-            }
-          }
-        }
-      );
-
-      console.log("✅ Upload response:", res.data);
-
-      const uploadedMedia = res.data.media;
-      
-      if (!uploadedMedia || uploadedMedia.length === 0) {
-        throw new Error("No media returned from server");
-      }
-
-      console.log("📁 Uploaded files albumId:", uploadedMedia[0]?.albumId);
-
-      setMedia(prev => [...uploadedMedia, ...prev]);
-      
-      if (selectedAlbum) {
-        setAlbums(prev => prev.map(album => {
-          if (album._id === selectedAlbum._id) {
-            return {
-              ...album,
-              media: [...uploadedMedia, ...(album.media || [])]
-            };
-          }
-          return album;
-        }));
-        
-        setNestedAlbums(prev => prev.map(album => {
-          if (album._id === selectedAlbum._id) {
-            return {
-              ...album,
-              media: [...uploadedMedia, ...(album.media || [])]
-            };
-          }
-          return album;
-        }));
-
-        toast.success(`✅ Successfully uploaded ${uploadedMedia.length} files to "${selectedAlbum.name}"!`, { id: uploadToast });
-      } else {
-        toast.success(`✅ Successfully uploaded ${uploadedMedia.length} files to main library!`, { id: uploadToast });
-      }
-      
-      // Fetch updated storage info
-      fetchStorageInfo();
-      
-      setShowUploadModal(false);
-      setFiles([]);
-      setPreviews([]);
-      
-      setTimeout(() => {
-        fetchData();
-      }, 500);
-      
-    } catch (err: any) {
-      console.error("❌ Upload error:", err);
-      
-      toast.error(err.response?.data?.error || "Upload failed", { id: uploadToast });
-    } finally {
-      setIsUploading(false);
-      setUploadProgress({});
-    }
-  };
-
-  const handleCreateAlbum = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!newAlbumName || !user) return;
-
-    const createToast = toast.loading('Creating album...');
-
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/albums/create`,
-        {
-          name: newAlbumName,
-          description: newAlbumDescription,
-          category: "personal",
-          parentAlbumId: null,
-          isFolder: false,
-        },
-        { withCredentials: true }
-      );
-
-      const newAlbum = { ...res.data, isFolder: true };
-      setAlbums((prev) => [...prev, newAlbum]);
-      
-      toast.success('Album created!', { id: createToast });
-      setShowCreateAlbum(false);
-      setNewAlbumName("");
-      setNewAlbumDescription("");
-    } catch (err: any) {
-      console.error("Album creation error:", err);
-      toast.error(err.response?.data?.error || "Failed to create album", { id: createToast });
-    }
-  };
-
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!newFolderName || !user || !selectedAlbum) return;
-
-    const createToast = toast.loading('Creating folder...');
-
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/albums/create`,
-        {
-          name: newFolderName,
-          description: "",
-          category: "personal",
-          parentAlbumId: selectedAlbum._id,
-          isFolder: true,
-        },
-        { withCredentials: true }
-      );
-
-      const newFolder = { ...res.data, isFolder: true };
-      setAlbums((prev) => [...prev, newFolder]);
-      setNestedAlbums(prev => [...prev, newFolder]);
-      
-      toast.success('Folder created!', { id: createToast });
-      setShowCreateFolderModal(false);
-      setNewFolderName("");
-    } catch (err: any) {
-      console.error("Folder creation error:", err);
-      toast.error(err.response?.data?.error || "Failed to create folder", { id: createToast });
-    }
-  };
-
-  const navigateToAlbum = (album: Album) => {
-    setAlbumPath(prev => [...prev, album]);
-    setSelectedAlbum(album);
-    setSelectedCategory("Albums");
-    fetchData();
-  };
-
-  const navigateToFolder = (folder: Album) => {
-    console.log(`📁 Navigating to folder:`, folder);
-    setAlbumPath(prev => [...prev, folder]);
-    setSelectedAlbum(folder);
-    fetchData();
-  };
-
-  const navigateBack = () => {
-    if (albumPath.length > 1) {
-      const newPath = [...albumPath];
-      newPath.pop();
-      setAlbumPath(newPath);
-      setSelectedAlbum(newPath[newPath.length - 1]);
-    } else {
-      setAlbumPath([]);
-      setSelectedAlbum(null);
-    }
-    fetchData();
-  };
-
-  const goToAlbumsRoot = () => {
-    setAlbumPath([]);
-    setSelectedAlbum(null);
-    fetchData();
-  };
-
-  const fetchFolderContents = async (folderId: string) => {
-    try {
-      console.log(`📁 Fetching contents for folder: ${folderId}`);
-      
-      const foldersRes = await axios.get(`${API_BASE_URL}/albums/?parentId=${folderId}`, {
-        withCredentials: true
-      }).catch(() => ({ data: [] }));
-      setNestedAlbums(foldersRes.data);
-      
-      const folderRes = await axios.get(`${API_BASE_URL}/albums/${folderId}`, {
-        withCredentials: true
-      }).catch(() => ({ data: { media: [] } }));
-      
-      console.log(`📁 Folder data:`, folderRes.data);
-      console.log(`📁 Media in folder from API:`, folderRes.data.media?.length || 0);
-      
-    } catch (err) {
-      console.error("Error fetching folder contents:", err);
-    }
-  };
-
-  const fetchBreadcrumb = async (folderId: string) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/albums/${folderId}/path`, {
-        withCredentials: true
-      }).catch(() => ({ data: [] }));
-      setBreadcrumb(res.data);
-    } catch (err) {
-      console.error("Error fetching breadcrumb:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedAlbum) {
-      fetchFolderContents(selectedAlbum._id);
-      fetchBreadcrumb(selectedAlbum._id);
-    } else {
-      setNestedAlbums([]);
-      setBreadcrumb([]);
-    }
-  }, [selectedAlbum]);
-
-  const toggleFavorite = async (mediaId: string) => {
-    const favToast = toast.loading('Updating...');
-
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/media/${mediaId}/favorite`,
-        {},
-        { withCredentials: true }
-      );
-
-      setMedia((prev) =>
-        prev.map((item) =>
-          item._id === mediaId ? { ...item, favorite: response.data.favorite } : item
-        )
-      );
-
-      if (selectedCategory === "Locked") {
-        setLockedMedia((prev) =>
-          prev.map((item) =>
-            item._id === mediaId ? { ...item, favorite: response.data.favorite } : item
-          )
-        );
-      }
-
-      if (selectedMedia && selectedMedia._id === mediaId) {
-        setSelectedMedia(prev => prev ? { ...prev, favorite: response.data.favorite } : null);
-      }
-
-      toast.success(response.data.message, { id: favToast });
-    } catch (err) {
-      console.error("Failed to toggle favorite", err);
-      toast.error("Failed to update", { id: favToast });
-    }
-  };
-
-  const moveToTrash = async (id: string) => {
-    const trashToast = toast.loading('Moving to trash...');
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/${id}/trash`, {}, {
-        withCredentials: true
-      });
-
-      const item = media.find(m => m._id === id) || lockedMedia.find(m => m._id === id);
-      
-      if (item) {
-        if (selectedCategory === "Locked") {
-          setLockedMedia(prev => prev.filter(m => m._id !== id));
-        } else {
-          setMedia(prev => prev.filter(m => m._id !== id));
-        }
-        
-        setTrashMedia(prev => [{
-          ...item,
-          trashedAt: new Date().toISOString(),
-          scheduledDeleteAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-          daysLeft: 15
-        }, ...prev]);
-
-        if (res.data.storage) {
-          updateUserStorage(res.data.storage);
-        }
-      }
-      
-      toast.success('Moved to trash', { id: trashToast });
-      setShowMediaModal(false);
-      setShowMediaSidePanel(false);
-      setSelectedMedia(null);
-      setMobileItemMenu(null);
-    } catch (err) {
-      console.error("Trash error:", err);
-      toast.error('Failed to move to trash', { id: trashToast });
-    }
-  };
-
-  const restoreFromTrash = async (id: string) => {
-    const restoreToast = toast.loading('Restoring...');
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/${id}/restore`, {}, {
-        withCredentials: true
-      });
-
-      const item = trashMedia.find(m => m._id === id);
-      setTrashMedia(prev => prev.filter(m => m._id !== id));
-      
-      if (item) {
-        if (item.isLocked && hasLockedAccess) {
-          setLockedMedia(prev => [{ ...item, isLocked: true }, ...prev]);
-        } else {
-          setMedia(prev => [{ ...item, isLocked: false }, ...prev]);
-        }
-        
-        if (res.data.storage) {
-          updateUserStorage(res.data.storage);
-        }
-      }
-      
-      toast.success('Restored', { id: restoreToast });
-      setMobileItemMenu(null);
-    } catch (err) {
-      console.error("Restore error:", err);
-      toast.error('Failed to restore', { id: restoreToast });
-    }
-  };
-
-  const permanentDelete = async (id: string) => {
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-white font-medium">Delete permanently?</p>
-        <p className="text-gray-400 text-sm">This action cannot be undone.</p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              const deleteToast = toast.loading('Deleting permanently...');
-              
-              try {
-                const res = await axios.delete(`${API_BASE_URL}/media/permanent/${id}`, {
-                  withCredentials: true
-                });
-
-                setTrashMedia(prev => prev.filter(m => m._id !== id));
-                
-                if (res.data.storage) {
-                  updateUserStorage(res.data.storage);
-                }
-                
-                toast.success('Permanently deleted', { id: deleteToast });
-                setMobileItemMenu(null);
-              } catch (err) {
-                console.error("Permanent delete error:", err);
-                toast.error('Failed to delete', { id: deleteToast });
-              }
-            }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
-      style: {
-        background: '#1F2937',
-        border: '1px solid #374151',
-        borderRadius: '1rem',
-        padding: '1rem',
-      },
-    });
-  };
-
-  const handleEditName = async () => {
-    if (!selectedMedia || !newName.trim()) return;
-
-    const editToast = toast.loading('Updating name...');
-
-    try {
-      await axios.put(
-        `${API_BASE_URL}/media/${selectedMedia._id}`,
-        { originalName: newName },
-        { withCredentials: true }
-      );
-
-      if (selectedCategory === "Locked") {
-        setLockedMedia(prev => prev.map(item => 
-          item._id === selectedMedia._id ? { ...item, originalName: newName } : item
-        ));
-      } else {
-        setMedia(prev => prev.map(item => 
-          item._id === selectedMedia._id ? { ...item, originalName: newName } : item
-        ));
-      }
-
-      setSelectedMedia(prev => prev ? { ...prev, originalName: newName } : null);
-      
-      toast.success('Name updated!', { id: editToast });
-      setShowEditNameModal(false);
-    } catch (err) {
-      console.error("Edit name error:", err);
-      toast.error('Failed to update name', { id: editToast });
-    }
-  };
-
-  const bulkTrash = async () => {
-    if (selectedItems.length === 0) return;
-    
-    const bulkToast = toast.loading(`Moving ${selectedItems.length} items to trash...`);
-    
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/bulk-trash`,
-        { mediaIds: selectedItems },
-        { withCredentials: true }
-      );
-      
-      const itemsToTrash = [...media, ...lockedMedia].filter(item => selectedItems.includes(item._id));
-      
-      if (selectedCategory === "Locked") {
-        setLockedMedia(prev => prev.filter(item => !selectedItems.includes(item._id)));
-      } else {
-        setMedia(prev => prev.filter(item => !selectedItems.includes(item._id)));
-      }
-      
-      setTrashMedia(prev => [
-        ...itemsToTrash.map(item => ({
-          ...item,
-          trashedAt: new Date().toISOString(),
-          scheduledDeleteAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-          daysLeft: 15
-        })),
-        ...prev
-      ]);
-      
-      if (res.data.storage) {
-        updateUserStorage(res.data.storage);
-      }
-      
-      setSelectedItems([]);
-      setShowBulkActions(false);
-      setIsSelectionMode(false);
-      
-      toast.success(`Moved ${selectedItems.length} items to trash`, { id: bulkToast });
-    } catch (err) {
-      console.error("Bulk trash error:", err);
-      toast.error('Failed to move items', { id: bulkToast });
-    }
-  };
-
-  const bulkRestore = async () => {
-    if (selectedItems.length === 0) return;
-    
-    const bulkToast = toast.loading(`Restoring ${selectedItems.length} items...`);
-    
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/bulk-restore`,
-        { mediaIds: selectedItems },
-        { withCredentials: true }
-      );
-      
-      const itemsToRestore = trashMedia.filter(item => selectedItems.includes(item._id));
-      setTrashMedia(prev => prev.filter(item => !selectedItems.includes(item._id)));
-      
-      const lockedItems = itemsToRestore.filter(item => item.isLocked);
-      const normalItems = itemsToRestore.filter(item => !item.isLocked);
-      
-      if (hasLockedAccess) {
-        setLockedMedia(prev => [...lockedItems.map(item => ({ ...item, isLocked: true })), ...prev]);
-      }
-      setMedia(prev => [...normalItems.map(item => ({ ...item, isLocked: false })), ...prev]);
-      
-      if (res.data.storage) {
-        updateUserStorage(res.data.storage);
-      }
-      
-      setSelectedItems([]);
-      setShowBulkActions(false);
-      setIsSelectionMode(false);
-      
-      toast.success(`Restored ${selectedItems.length} items`, { id: bulkToast });
-    } catch (err) {
-      console.error("Bulk restore error:", err);
-      toast.error('Failed to restore items', { id: bulkToast });
-    }
-  };
-
-  const bulkPermanentDelete = async () => {
-    if (selectedItems.length === 0) return;
-    
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-white font-medium">Delete {selectedItems.length} items?</p>
-        <p className="text-gray-400 text-sm">This action cannot be undone.</p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              const bulkToast = toast.loading(`Deleting ${selectedItems.length} items permanently...`);
-              
-              try {
-                await Promise.all(selectedItems.map(id => 
-                  axios.delete(`${API_BASE_URL}/media/permanent/${id}`, { withCredentials: true })
-                ));
-                
-                setTrashMedia(prev => prev.filter(item => !selectedItems.includes(item._id)));
-                
-                setSelectedItems([]);
-                setShowBulkActions(false);
-                setIsSelectionMode(false);
-                
-                toast.success(`Deleted ${selectedItems.length} items permanently`, { id: bulkToast });
-              } catch (err) {
-                console.error("Bulk permanent delete error:", err);
-                toast.error('Failed to delete items', { id: bulkToast });
-              }
-            }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-          >
-            Delete All
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
-      style: {
-        background: '#1F2937',
-        border: '1px solid #374151',
-        borderRadius: '1rem',
-        padding: '1rem',
-      },
-    });
-  };
-
-  const handleSetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (lockState.password !== lockState.confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-
-    if (lockState.password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      return;
-    }
-
-    setIsSettingPassword(true);
-    setPasswordError('');
-
-    try {
-      await axios.post(`${API_BASE_URL}/locked/set-password`,
-        { password: lockState.password },
-        { withCredentials: true }
-      );
-      
-      toast.success('Password set successfully!');
-      setHasLockPassword(true);
-      setHasLockedAccess(true);
-      setLockState({
-        isLocked: false,
-        password: '',
-        confirmPassword: '',
-        showPassword: false,
-        showConfirmPassword: false
-      });
-      setShowPasswordModal(false);
-      
-    } catch (err: any) {
-      setPasswordError(err.response?.data?.error || 'Failed to set password');
-    } finally {
-      setIsSettingPassword(false);
-    }
-  };
-
-  const handleVerifyPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!lockPassword) {
-      setPasswordError('Please enter password');
-      return;
-    }
-
-    setIsSettingPassword(true);
-    setPasswordError('');
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/locked/verify-password`,
-        { password: lockPassword },
-        { withCredentials: true }
-      );
-      
-      if (res.data.valid) {
-        toast.success('Access granted for 5 minutes!');
-        setHasLockedAccess(true);
-        setShowPasswordModal(false);
-        setLockPassword('');
-        setSelectedCategory('Locked');
-        fetchData();
-      }
-      
-    } catch (err: any) {
-      setPasswordError(err.response?.data?.error || 'Invalid password');
-    } finally {
-      setIsSettingPassword(false);
-    }
-  };
-
-  const toggleLock = async (id: string) => {
-    if (!hasLockedAccess) {
-      setShowPasswordModal(true);
-      return;
-    }
-
-    const lockToast = toast.loading('Moving to locked folder...');
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/${id}/lock`, {}, {
-        withCredentials: true
-      });
-
-      const item = media.find(m => m._id === id);
-      
-      if (item) {
-        setMedia(prev => prev.filter(m => m._id !== id));
-        setLockedMedia(prev => [{ ...item, isLocked: true }, ...prev]);
-        
-        toast.success('Moved to locked folder', { id: lockToast });
-      }
-
-      if (selectedMedia && selectedMedia._id === id) {
-        setSelectedMedia(prev => prev ? { ...prev, isLocked: true } : null);
-      }
-      
-      if (res.data.storage) {
-        updateUserStorage(res.data.storage);
-      }
-      
-      setMobileItemMenu(null);
-    } catch (err) {
-      console.error("Lock error:", err);
-      toast.error('Failed to move to locked folder', { id: lockToast });
-    }
-  };
-
-  const moveToOriginal = async (id: string) => {
-    const unlockToast = toast.loading('Moving to main library...');
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/media/${id}/lock`, {}, {
-        withCredentials: true
-      });
-
-      const item = lockedMedia.find(m => m._id === id);
-      
-      if (item) {
-        setLockedMedia(prev => prev.filter(m => m._id !== id));
-        setMedia(prev => [{ ...item, isLocked: false }, ...prev]);
-        
-        toast.success('Moved to main library', { id: unlockToast });
-      }
-
-      if (selectedMedia && selectedMedia._id === id) {
-        setSelectedMedia(prev => prev ? { ...prev, isLocked: false } : null);
-      }
-      
-      if (res.data.storage) {
-        updateUserStorage(res.data.storage);
-      }
-      
-      setMobileItemMenu(null);
-    } catch (err) {
-      console.error("Unlock error:", err);
-      toast.error('Failed to move to main library', { id: unlockToast });
-    }
-  };
-
-  const handleMoveToAlbum = (mediaId: string) => {
-    setMediaToMove(mediaId);
-    fetchAlbumTree();
-    setShowMoveModal(true);
-    setCurrentFolderPath([]);
-    setSelectedTargetAlbum(null);
-  };
-
-  const clearLockedAccess = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/locked/clear-access`, {}, {
-        withCredentials: true
-      });
-      setHasLockedAccess(false);
-      if (selectedCategory === "Locked") {
-        setSelectedCategory("For You");
-      }
-      toast.success('Locked folder locked');
-    } catch (err) {
-      console.error("Clear access error:", err);
-    }
-  };
-
-  const handleDeleteAlbum = async (albumId: string) => {
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-white font-medium">Delete Album?</p>
-        <p className="text-gray-400 text-sm">The media inside will not be deleted.</p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              const deleteToast = toast.loading('Deleting album...');
-
-              try {
-                await axios.delete(
-                  `${API_BASE_URL}/albums/${albumId}`,
-                  { withCredentials: true }
-                );
-
-                setAlbums((prev) => prev.filter((a) => a._id !== albumId));
-                
-                if (selectedAlbum?._id === albumId) {
-                  setSelectedAlbum(null);
-                  setAlbumPath([]);
-                }
-                
-                toast.success('Album deleted', { id: deleteToast });
-              } catch (err) {
-                console.error("Album delete error:", err);
-                toast.error('Failed to delete album', { id: deleteToast });
-              }
-            }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
-      style: {
-        background: '#1F2937',
-        border: '1px solid #374151',
-        borderRadius: '1rem',
-        padding: '1rem',
-      },
-    });
-  };
-
-  const handleDeleteFolder = async (folderId: string) => {
-    toast((t) => (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-white font-medium">Delete Folder?</p>
-        <p className="text-gray-400 text-sm">All contents will be deleted permanently.</p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              const deleteToast = toast.loading('Deleting folder...');
-
-              try {
-                await axios.delete(
-                  `${API_BASE_URL}/albums/${folderId}`,
-                  { withCredentials: true }
-                );
-
-                setAlbums((prev) => prev.filter((a) => a._id !== folderId));
-                setNestedAlbums((prev) => prev.filter((a) => a._id !== folderId));
-                
-                toast.success('Folder deleted', { id: deleteToast });
-              } catch (err) {
-                console.error("Folder delete error:", err);
-                toast.error('Failed to delete folder', { id: deleteToast });
-              }
-            }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
-      style: {
-        background: '#1F2937',
-        border: '1px solid #374151',
-        borderRadius: '1rem',
-        padding: '1rem',
-      },
-    });
-  };
-
-  const goToSettings = () => {
-    router.push('/settings');
-  };
-
-  const handleLogout = async () => {
-    const logoutToast = toast.loading('Logging out...');
-    
-    try {
-      await axios.post(
-        `${API_BASE_URL}/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
-      toast.success('Logged out', { id: logoutToast });
-      router.push("/");
-    } catch (err) {
-      console.error("Logout failed:", err);
-      toast.error('Logout failed', { id: logoutToast });
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedItems.length === displayMedia.length) {
-      setSelectedItems([]);
-    } else {
-      setSelectedItems(displayMedia.map(item => item._id));
-    }
-  };
-
-  const toggleFullscreen = (element: HTMLElement) => {
-    if (!document.fullscreenElement) {
-      element.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const formatFileSize = (bytes?: number): string => {
-    if (!bytes) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  };
-
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const handleMediaClick = (item: UploadedMedia) => {
-    const index = allDisplayMedia.findIndex(m => m._id === item._id);
-    setCurrentMediaIndex(index);
-    setSelectedMedia(item);
-    setNewName(item.originalName);
-    setShowMediaModal(true);
-    setShowMediaSidePanel(false);
-  };
-
-  const toggleItemSelection = (id: string) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
-    setMobileItemMenu(null);
-  };
-
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
-    if (isSelectionMode) {
-      setSelectedItems([]);
-    }
-    setMobileItemMenu(null);
-  };
-
-  const handleMobileItemMenu = (id: string) => {
-    setMobileItemMenu(mobileItemMenu === id ? null : id);
-  };
-
+  // ==================== LOADING STATE ====================
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <h2 className="text-xl text-white font-light">Loading your gallery...</h2>
+          <p className="text-gray-500 text-sm mt-2">Please wait</p>
         </div>
       </div>
     );
   }
 
+  // ==================== RENDER DASHBOARD ====================
   return (
     <div className="min-h-screen bg-black">
       <Toaster 
@@ -3253,31 +2132,10 @@ const DashboardPage = () => {
         }}
       />
       
-      {showSessionWarning && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center space-x-3">
-          <Clock size={16} />
-          <span className="text-sm">Your session will expire in 2 minutes. Please save your work.</span>
-          <button
-            onClick={async () => {
-              try {
-                await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-                setShowSessionWarning(false);
-                toast.success('Session extended!');
-              } catch (error) {
-                console.error("Failed to refresh session", error);
-              }
-            }}
-            className="ml-2 px-2 py-1 bg-white text-yellow-600 rounded-lg text-xs font-medium hover:bg-yellow-50 transition"
-          >
-            Extend
-          </button>
-        </div>
-      )}
-      
       {/* Top Navbar */}
       <nav className="fixed top-0 left-0 right-0 bg-black border-b border-gray-800 z-30 px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
-          {/* Left section - Hamburger menu */}
+          {/* Left section */}
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -3285,7 +2143,6 @@ const DashboardPage = () => {
             >
               <Menu size={20} className="text-gray-400" />
             </button>
-            
             <span className="font-semibold text-white text-lg">ImageLibrary</span>
           </div>
 
@@ -3305,75 +2162,6 @@ const DashboardPage = () => {
 
           {/* Right section */}
           <div className="flex items-center space-x-3">
-            {hasLockedAccess && showTimer && (
-              <div className="hidden sm:flex px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-xl text-sm items-center space-x-2">
-                <Clock size={14} />
-                <span>5 min session</span>
-              </div>
-            )}
-            
-            {/* Mobile search icon */}
-            <div className="relative md:hidden">
-              <button
-                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                className="p-2 hover:bg-gray-800 rounded-xl transition"
-              >
-                <Search size={20} className="text-gray-400" />
-              </button>
-              
-              {showMobileSearch && (
-                <div 
-                  ref={mobileSearchRef}
-                  className="absolute right-2/2 translate-x-1/2 top-full mt-2 w-72 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl p-3 z-50"
-                >
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-500"
-                      autoFocus
-                    />
-                  </div>
-                  {searchQuery && (
-                    <div className="mt-2 text-xs text-gray-400 px-2">
-                      Found {displayMedia.length} results
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setShowMobileSearch(false)}
-                    className="absolute top-2 right-2 p-1 hover:bg-gray-800 rounded-lg transition"
-                  >
-                    <X size={14} className="text-gray-500" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Three dot menu */}
-            <DropdownMenu
-              trigger={
-                <button className="p-2 hover:bg-gray-800 rounded-xl transition">
-                  <MoreVertical size={20} className="text-gray-400" />
-                </button>
-              }
-              align="right"
-              items={[
-                {
-                  label: isSelectionMode ? 'Exit Selection Mode' : 'Select Items',
-                  icon: isSelectionMode ? <X size={16} /> : <CheckSquare size={16} />,
-                  onClick: toggleSelectionMode
-                },
-                {
-                  label: selectedItems.length === displayMedia.length ? 'Deselect All' : 'Select All',
-                  icon: <Square size={16} />,
-                  onClick: handleSelectAll
-                }
-              ]}
-            />
-            
             {/* Upload button */}
             <button
               onClick={() => setShowUploadModal(true)}
@@ -3383,8 +2171,8 @@ const DashboardPage = () => {
               <Upload size={20} className="text-gray-400 group-hover:text-white" />
             </button>
 
-            {/* User menu - Desktop with Google Picture */}
-            <div className="relative hidden md:block">
+            {/* User menu */}
+            <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="p-1 hover:bg-gray-800 rounded-xl transition relative group"
@@ -3397,23 +2185,10 @@ const DashboardPage = () => {
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                       crossOrigin="anonymous"
-                      onError={(e) => {
-                        console.log('Google picture failed to load, showing fallback');
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          const fallback = document.createElement('div');
-                          fallback.className = 'w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-medium text-lg';
-                          fallback.textContent = user?.name?.charAt(0)?.toUpperCase() || 'U';
-                          parent.appendChild(fallback);
-                        }
-                      }}
-                      onLoad={() => console.log('Google picture loaded successfully')}
                     />
                   </div>
                 ) : (
-                  <div className="w-9 h-9 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-medium text-lg shadow-lg group-hover:shadow-blue-500/20 transition-all">
+                  <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-medium text-lg">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                 )}
@@ -3429,47 +2204,27 @@ const DashboardPage = () => {
                             src={user.avatar} 
                             alt={user.name}
                             className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
                           />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0">
                           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{user?.name}</p>
                         <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                        {user?.auth_provider === 'google' && (
-                          <span className="text-xs text-blue-400 flex items-center mt-1">
-                            <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24">
-                              <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-                            </svg>
-                            Google
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
                   
                   <div className="px-2 py-2">
                     <button 
-                      onClick={goToSettings}
+                      onClick={() => router.push('/settings')}
                       className="w-full text-left px-3 py-2 hover:bg-gray-800 rounded-xl flex items-center space-x-3 text-sm text-gray-300 transition"
                     >
                       <Settings size={16} />
                       <span>Settings</span>
-                    </button>
-                    <button 
-                      onClick={() => toast.success('Help & Support coming soon!')}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-800 rounded-xl flex items-center space-x-3 text-sm text-gray-300 transition"
-                    >
-                      <HelpCircle size={16} />
-                      <span>Help & Support</span>
                     </button>
                   </div>
                   
@@ -3491,916 +2246,92 @@ const DashboardPage = () => {
         </div>
       </nav>
 
-      {/* Mobile Left Side Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-gray-900 shadow-xl overflow-y-auto animate-slide-right">
-            <div className="sticky top-0 bg-gray-900 p-4 border-b border-gray-800 flex justify-between items-center">
-              <h3 className="font-medium text-white">Menu</h3>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 hover:bg-gray-800 rounded-xl transition"
-              >
-                <X size={20} className="text-gray-400" />
-              </button>
-            </div>
-
-            {/* User info with Google Picture */}
-            <div className="p-4 border-b border-gray-800">
-              <div className="flex items-center space-x-3">
-                {user?.avatar ? (
-                  <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-blue-500/50">
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                      crossOrigin="anonymous"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const parent = e.currentTarget.parentElement;
-                        if (parent) {
-                          const fallback = document.createElement('div');
-                          fallback.className = 'w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-xl';
-                          fallback.textContent = user?.name?.charAt(0)?.toUpperCase() || 'U';
-                          parent.appendChild(fallback);
-                        }
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="text-white font-medium">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                  {user?.auth_provider === 'google' && (
-                    <span className="text-xs text-blue-400 mt-1 inline-block">Google</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile categories */}
-            <div className="p-4">
-              <div className="space-y-1">
-                {categories.map((category) => (
-                  <button
-                    key={category.name}
-                    onClick={() => {
-                      if (category.name === "Locked") {
-                        if (!hasLockedAccess) {
-                          setShowPasswordModal(true);
-                        } else {
-                          setSelectedCategory(category.name);
-                          setSelectedAlbum(null);
-                        }
-                      } else {
-                        setSelectedCategory(category.name);
-                        setSelectedAlbum(null);
-                      }
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                      selectedCategory === category.name
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                    }`}
-                  >
-                    <category.icon size={20} />
-                    <span className="flex-1 text-sm font-medium text-left">{category.name}</span>
-                    {category.name === "Locked" && hasLockedAccess && (
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    )}
-                    {category.name === "Trash" && trashMedia.length > 0 && (
-                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
-                        {trashMedia.length}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Mobile settings and logout */}
-              <div className="mt-8 pt-8 border-t border-gray-800 space-y-2">
-                <button 
-                  onClick={() => {
-                    goToSettings();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-800 rounded-xl flex items-center space-x-3 text-sm text-gray-300"
-                >
-                  <Settings size={20} />
-                  <span>Settings</span>
-                </button>
-                <button 
-                  onClick={() => {
-                    toast.success('Help & Support coming soon!');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-800 rounded-xl flex items-center space-x-3 text-sm text-gray-300"
-                >
-                  <HelpCircle size={20} />
-                  <span>Help & Support</span>
-                </button>
-                <button 
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-400 rounded-xl flex items-center space-x-3 text-sm"
-                >
-                  <LogOut size={20} />
-                  <span>Sign out</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile storage */}
-            {user && (
-              <div className="p-4 border-t border-gray-800">
-                <div className="flex items-center justify-between text-xs mb-3">
-                  <span className="text-gray-500 flex items-center space-x-2">
-                    <HardDrive size={14} />
-                    <span>Storage</span>
-                  </span>
-                  <span className="text-white font-medium">
-                    {formatFileSize(user.storageUsed)} / {formatFileSize(user.storageTotal)}
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-600 rounded-full transition-all duration-300" 
-                    style={{ width: `${(user.storageUsed / user.storageTotal) * 100}%` }} 
-                  />
-                </div>
-              </div>
-            )}
+      {/* Main Content */}
+      <div className="pt-20">
+        <div className="p-6">
+          {/* Welcome Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Welcome back, {user?.name || 'User'}!
+            </h1>
+            <p className="text-gray-400">
+              You have {media.length} items in your library
+            </p>
           </div>
-        </div>
-      )}
 
-      {/* Main Layout */}
-      <div className="flex pt-20">
-        {/* Left Sidebar - Desktop */}
-        <aside className={`fixed left-0 top-20 h-[calc(100vh-5rem)] bg-black border-r border-gray-800 transition-all duration-300 overflow-y-auto z-20 hidden lg:block ${
-          sidebarCollapsed ? 'w-20' : 'w-64'
-        }`}>
-          <div className="py-6 px-3">
-            {/* Categories */}
-            <div className="space-y-1">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+              <ImageIcon className="text-blue-400 mb-2" size={24} />
+              <p className="text-2xl font-bold text-white">{media.filter(m => m.type === 'image').length}</p>
+              <p className="text-sm text-gray-400">Images</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+              <Video className="text-purple-400 mb-2" size={24} />
+              <p className="text-2xl font-bold text-white">{media.filter(m => m.type === 'video').length}</p>
+              <p className="text-sm text-gray-400">Videos</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+              <Folder className="text-green-400 mb-2" size={24} />
+              <p className="text-2xl font-bold text-white">{albums.length}</p>
+              <p className="text-sm text-gray-400">Albums</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+              <HardDrive className="text-yellow-400 mb-2" size={24} />
+              <p className="text-2xl font-bold text-white">{formatFileSize(user?.storageUsed)}</p>
+              <p className="text-sm text-gray-400">Storage Used</p>
+            </div>
+          </div>
+
+          {/* Success Message */}
+          <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8 text-center mb-8">
+            <div className="inline-flex p-4 bg-green-500/20 rounded-2xl mb-4">
+              <CheckCircle size={48} className="text-green-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Authentication Successful!</h2>
+            <p className="text-gray-400 max-w-md mx-auto">
+              You are now logged in to your dashboard. Your session is active and secure.
+            </p>
+          </div>
+
+          {/* Categories */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-white mb-4">Categories</h2>
+            <div className="flex flex-wrap gap-3">
               {categories.map((category) => (
                 <button
                   key={category.name}
-                  onClick={() => {
-                    if (category.name === "Locked") {
-                      if (!hasLockedAccess) {
-                        setShowPasswordModal(true);
-                      } else {
-                        setSelectedCategory(category.name);
-                        setSelectedAlbum(null);
-                      }
-                    } else {
-                      setSelectedCategory(category.name);
-                      setSelectedAlbum(null);
-                    }
-                  }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition ${
                     selectedCategory === category.name
                       ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      : 'bg-gray-900 text-gray-400 hover:bg-gray-800 hover:text-white'
                   }`}
                 >
-                  <category.icon size={20} />
-                  {!sidebarCollapsed && (
-                    <span className="flex-1 text-sm font-medium text-left">{category.name}</span>
-                  )}
-                  {category.name === "Locked" && hasLockedAccess && !sidebarCollapsed && (
-                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  )}
-                  {category.name === "Trash" && trashMedia.length > 0 && !sidebarCollapsed && (
-                    <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
-                      {trashMedia.length}
-                    </span>
-                  )}
+                  <category.icon size={18} />
+                  <span>{category.name}</span>
                 </button>
               ))}
             </div>
-
-            {/* Storage bar - Desktop */}
-            {!sidebarCollapsed && user && (
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-black border-t border-gray-800">
-                <div className="flex items-center justify-between text-xs mb-3">
-                  <span className="text-gray-500 flex items-center space-x-2">
-                    <HardDrive size={14} />
-                    <span>Storage</span>
-                  </span>
-                  <span className="text-white font-medium">
-                    {formatFileSize(user.storageUsed)} / {formatFileSize(user.storageTotal)}
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-600 rounded-full transition-all duration-300" 
-                    style={{ width: `${(user.storageUsed / user.storageTotal) * 100}%` }} 
-                  />
-                </div>
-              </div>
-            )}
           </div>
-        </aside>
 
-        {/* Main Content */}
-        <main className={`flex-1 transition-all duration-300 ${
-          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
-        }`}>
-          <div className="p-6">
-            {/* Page header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                  {selectedAlbum ? selectedAlbum.name : selectedCategory}
-                </h1>
-                {selectedCategory === "Locked" && hasLockedAccess && (
-                  <div className="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs flex items-center space-x-1">
-                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <span>5 min session</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {selectedCategory === "Albums" && !selectedAlbum && (
-                  <button
-                    onClick={() => setShowCreateAlbum(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm flex items-center space-x-2"
-                  >
-                    <FolderPlus size={16} />
-                    <span className="hidden sm:inline">New Album</span>
-                    <span className="sm:hidden">New</span>
-                  </button>
-                )}
-                {selectedAlbum && (
-                  <>
-                    <button
-                      onClick={() => setShowCreateFolderModal(true)}
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl transition text-sm flex items-center space-x-2"
-                    >
-                      <FolderPlus size={16} />
-                      <span className="hidden sm:inline">New Folder</span>
-                      <span className="sm:hidden">New</span>
-                    </button>
-                    <button
-                      onClick={() => setShowUploadModal(true)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm flex items-center space-x-2"
-                    >
-                      <Upload size={16} />
-                      <span className="hidden sm:inline">Upload to Folder</span>
-                      <span className="sm:hidden">Upload</span>
-                    </button>
-                  </>
-                )}
-                <div className="flex items-center bg-gray-800 rounded-xl p-1">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition ${
-                      viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    <LayoutGrid size={18} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition ${
-                      viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    <List size={18} />
-                  </button>
-                </div>
-                <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-xl transition"
-                >
-                  {sortOrder === 'desc' ? <SortDesc size={18} /> : <SortAsc size={18} />}
-                </button>
-              </div>
+          {/* Media Grid Placeholder */}
+          <div className="text-center py-12 bg-gray-900/50 rounded-3xl border border-gray-800">
+            <div className="inline-flex p-4 bg-blue-600/10 rounded-2xl mb-4">
+              <Sparkles size={48} className="text-blue-400" />
             </div>
-
-            {/* Breadcrumb for albums */}
-            {selectedAlbum && (
-              <div className="flex items-center space-x-2 mb-6 overflow-x-auto pb-2 text-sm">
-                <button
-                  onClick={goToAlbumsRoot}
-                  className="text-gray-500 hover:text-white whitespace-nowrap px-3 py-1.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-                >
-                  <Home size={14} className="inline mr-1" />
-                  Albums
-                </button>
-                
-                {breadcrumb.map((item, index) => (
-                  <React.Fragment key={item._id}>
-                    <ChevronRight size={14} className="text-gray-600" />
-                    <button
-                      onClick={async () => {
-                        const res = await axios.get(`${API_BASE_URL}/albums/${item._id}`, {
-                          withCredentials: true
-                        });
-                        setSelectedAlbum(res.data);
-                      }}
-                      className={`whitespace-nowrap px-3 py-1.5 rounded-lg transition ${
-                        index === breadcrumb.length - 1 
-                          ? 'bg-blue-600/20 text-blue-400 font-medium' 
-                          : 'text-gray-500 hover:text-white hover:bg-gray-700'
-                      }`}
-                    >
-                      {item.name}
-                    </button>
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
-
-            {/* Selection mode indicator */}
-            {isSelectionMode && (
-              <div className="mb-4 p-3 bg-blue-600/20 border border-blue-600/30 rounded-xl flex items-center justify-between">
-                <span className="text-blue-400 text-sm">
-                  {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
-                </span>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-blue-400 text-sm hover:text-blue-300"
-                  >
-                    {selectedItems.length === displayMedia.length ? 'Deselect All' : 'Select All'}
-                  </button>
-                  <button
-                    onClick={toggleSelectionMode}
-                    className="text-blue-400 text-sm hover:text-blue-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Welcome banner */}
-            {selectedCategory === "For You" && displayMedia.length === 0 && (
-              <div className="mb-8 p-12 bg-gray-900 rounded-3xl border border-gray-800 text-center">
-                <div className="inline-flex p-4 bg-blue-600 rounded-2xl mb-4">
-                  <Sparkles size={32} className="text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Welcome to ImageLibrary</h3>
-                <p className="text-gray-400 mb-6">Upload photos and videos to your main library</p>
-                <button
-                  onClick={() => setShowUploadModal(true)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm inline-flex items-center space-x-2"
-                >
-                  <Upload size={18} />
-                  <span>Upload Now</span>
-                </button>
-              </div>
-            )}
-
-            {/* Locked folder message */}
-            {selectedCategory === "Locked" && !hasLockedAccess && (
-              <div className="mb-8 p-12 bg-gray-900 rounded-3xl border border-gray-800 text-center">
-                <div className="inline-flex p-4 bg-blue-600 rounded-2xl mb-4">
-                  <Lock size={32} className="text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Locked Folder</h3>
-                <p className="text-gray-400 mb-6">
-                  {hasLockPassword ? 'Enter password to access locked media' : 'Set a password to protect your private media'}
-                </p>
-                <button
-                  onClick={() => setShowPasswordModal(true)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm inline-flex items-center space-x-2"
-                >
-                  <Key size={18} />
-                  <span>{hasLockPassword ? 'Enter Password' : 'Set Password'}</span>
-                </button>
-              </div>
-            )}
-
-            {/* Albums View */}
-            {selectedCategory === "Albums" && !selectedAlbum && (
-              <div>
-                {albums.filter(a => !a.parentAlbumId).length === 0 ? (
-                  <div className="text-center py-16 bg-gray-900 rounded-3xl border border-gray-800">
-                    <Folder size={48} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400">No albums yet. Create your first album!</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {albums.filter(a => !a.parentAlbumId).map((album) => (
-                      <div
-                        key={album._id}
-                        className="group cursor-pointer relative"
-                      >
-                        <div
-                          onClick={() => navigateToAlbum(album)}
-                          className="aspect-square bg-gray-900 rounded-2xl overflow-hidden mb-2 border-2 border-transparent group-hover:border-blue-600 transition-all"
-                        >
-                          {album.coverUrl ? (
-                            <img src={album.coverUrl} alt={album.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Folder size={40} className="text-gray-600" />
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="text-sm text-white font-medium truncate px-1">{album.name}</h3>
-                        <p className="text-xs text-gray-500 px-1">{album.media?.length || 0} items</p>
-                        
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteAlbum(album._id);
-                          }}
-                          className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Album Content View */}
-            {selectedAlbum && (
-              <div>
-                {/* Nested Folders */}
-                {nestedAlbums.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Folders</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                      {nestedAlbums.map((folder) => (
-                        <div key={folder._id} className="relative group">
-                          <div
-                            onClick={() => navigateToFolder(folder)}
-                            className="cursor-pointer"
-                          >
-                            <div className="aspect-square bg-gray-900 rounded-2xl overflow-hidden mb-2 border-2 border-gray-700 group-hover:border-blue-600 transition-all flex items-center justify-center">
-                              <Folder size={48} className="text-blue-400" />
-                            </div>
-                            <h3 className="text-sm text-white font-medium truncate text-center">{folder.name}</h3>
-                            <p className="text-xs text-gray-500 text-center">
-                              {folder.media?.length || 0} items
-                            </p>
-                          </div>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteFolder(folder._id);
-                            }}
-                            className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Media in folder */}
-                {displayMedia.length > 0 ? (
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                      Media ({displayMedia.length})
-                    </h3>
-                    <div className={viewMode === 'grid' 
-                      ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-                      : "space-y-2"
-                    }>
-                      {displayMedia.map((item) => (
-                        <MediaItem
-                          key={item._id}
-                          item={item}
-                          viewMode={viewMode}
-                          selectedCategory={selectedCategory}
-                          selectedItems={selectedItems}
-                          onToggleSelect={toggleItemSelection}
-                          onClick={handleMediaClick}
-                          onToggleFavorite={toggleFavorite}
-                          onToggleLock={toggleLock}
-                          onMoveToOriginal={moveToOriginal}
-                          onMoveToTrash={moveToTrash}
-                          onMoveToAlbum={handleMoveToAlbum}
-                          onRestore={restoreFromTrash}
-                          onPermanentDelete={permanentDelete}
-                          formatFileSize={formatFileSize}
-                          formatDate={formatDate}
-                          isSelectionMode={isSelectionMode}
-                          showMobileMenu={mobileItemMenu}
-                          onMobileMenuToggle={handleMobileItemMenu}
-                          currentAlbumId={selectedAlbum?._id}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-16 bg-gray-900 rounded-3xl border border-gray-800">
-                    <Folder size={48} className="mx-auto text-gray-600 mb-3" />
-                    <h3 className="text-xl font-medium text-white mb-2">This folder is empty</h3>
-                    <p className="text-gray-400 mb-6">Upload files or create sub-folders</p>
-                    <div className="flex items-center justify-center space-x-3">
-                      <button
-                        onClick={() => setShowUploadModal(true)}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition text-sm inline-flex items-center space-x-2"
-                      >
-                        <Upload size={18} />
-                        <span>Upload Files</span>
-                      </button>
-                      <button
-                        onClick={() => setShowCreateFolderModal(true)}
-                        className="px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition text-sm inline-flex items-center space-x-2"
-                      >
-                        <FolderPlus size={18} />
-                        <span>New Folder</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Other category views */}
-            {selectedCategory !== "Albums" && !selectedAlbum && selectedCategory !== "Locked" && displayMedia.length > 0 && (
-              <div className={viewMode === 'grid' 
-                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-                : "space-y-2"
-              }>
-                {displayMedia.map((item) => (
-                  <MediaItem
-                    key={item._id}
-                    item={item}
-                    viewMode={viewMode}
-                    selectedCategory={selectedCategory}
-                    selectedItems={selectedItems}
-                    onToggleSelect={toggleItemSelection}
-                    onClick={handleMediaClick}
-                    onToggleFavorite={toggleFavorite}
-                    onToggleLock={toggleLock}
-                    onMoveToOriginal={moveToOriginal}
-                    onMoveToTrash={moveToTrash}
-                    onMoveToAlbum={handleMoveToAlbum}
-                    onRestore={restoreFromTrash}
-                    onPermanentDelete={permanentDelete}
-                    formatFileSize={formatFileSize}
-                    formatDate={formatDate}
-                    isSelectionMode={isSelectionMode}
-                    showMobileMenu={mobileItemMenu}
-                    onMobileMenuToggle={handleMobileItemMenu}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Locked category view */}
-            {selectedCategory === "Locked" && hasLockedAccess && (
-              <div>
-                {lockedMedia.length === 0 ? (
-                  <div className="text-center py-16 bg-gray-900 rounded-3xl border border-gray-800">
-                    <Lock size={48} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400">No locked items</p>
-                    <p className="text-xs text-gray-500 mt-2">Lock items from main library to see them here</p>
-                  </div>
-                ) : (
-                  <div className={viewMode === 'grid' 
-                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-                    : "space-y-2"
-                  }>
-                    {lockedMedia.map((item) => (
-                      <MediaItem
-                        key={item._id}
-                        item={item}
-                        viewMode={viewMode}
-                        selectedCategory={selectedCategory}
-                        selectedItems={selectedItems}
-                        onToggleSelect={toggleItemSelection}
-                        onClick={handleMediaClick}
-                        onToggleFavorite={toggleFavorite}
-                        onToggleLock={toggleLock}
-                        onMoveToOriginal={moveToOriginal}
-                        onMoveToTrash={moveToTrash}
-                        onMoveToAlbum={handleMoveToAlbum}
-                        onRestore={restoreFromTrash}
-                        onPermanentDelete={permanentDelete}
-                        formatFileSize={formatFileSize}
-                        formatDate={formatDate}
-                        isSelectionMode={isSelectionMode}
-                        showMobileMenu={mobileItemMenu}
-                        onMobileMenuToggle={handleMobileItemMenu}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Empty state messages */}
-            {displayMedia.length === 0 && selectedCategory !== "For You" && selectedCategory !== "Albums" && selectedCategory !== "Locked" && (
-              <div className="text-center py-16 bg-gray-900 rounded-3xl border border-gray-800">
-                {selectedCategory === "Trash" && (
-                  <>
-                    <Trash2 size={48} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400">Trash is empty</p>
-                  </>
-                )}
-                {selectedCategory === "Videos" && (
-                  <>
-                    <Video size={48} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400">No videos yet</p>
-                  </>
-                )}
-                {selectedCategory === "Images" && (
-                  <>
-                    <ImageIcon size={48} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400">No images yet</p>
-                  </>
-                )}
-              </div>
-            )}
+            <h3 className="text-xl text-white font-medium mb-2">Your Media Will Appear Here</h3>
+            <p className="text-gray-400 mb-6">Start by uploading photos and videos</p>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition inline-flex items-center space-x-2"
+            >
+              <Upload size={18} />
+              <span>Upload Now</span>
+            </button>
           </div>
-        </main>
+        </div>
       </div>
-
-      {/* Bulk actions bar */}
-      {selectedItems.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl p-3 flex items-center space-x-3 z-40">
-          <span className="px-3 text-sm text-white font-medium">{selectedItems.length} selected</span>
-          
-          {selectedCategory === "Trash" ? (
-            <>
-              <button
-                onClick={bulkRestore}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl text-sm flex items-center space-x-2 transition"
-              >
-                <RotateCcw size={16} />
-                <span className="hidden sm:inline">Restore</span>
-              </button>
-              <button
-                onClick={bulkPermanentDelete}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl text-sm flex items-center space-x-2 transition"
-              >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Delete</span>
-              </button>
-            </>
-          ) : selectedCategory === "Locked" ? (
-            <>
-              <button
-                onClick={() => {
-                  selectedItems.forEach(id => moveToOriginal(id));
-                  setSelectedItems([]);
-                }}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl text-sm flex items-center space-x-2 transition"
-              >
-                <Unlock size={16} />
-                <span className="hidden sm:inline">Move to Main</span>
-              </button>
-              <button
-                onClick={bulkTrash}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl text-sm flex items-center space-x-2 transition"
-              >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Move to Trash</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  selectedItems.forEach(id => toggleLock(id));
-                  setSelectedItems([]);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm flex items-center space-x-2 transition"
-              >
-                <Lock size={16} />
-                <span className="hidden sm:inline">Lock</span>
-              </button>
-              <button
-                onClick={bulkTrash}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl text-sm flex items-center space-x-2 transition"
-              >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Move to Trash</span>
-              </button>
-            </>
-          )}
-          
-          <button
-            onClick={() => setSelectedItems([])}
-            className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-xl transition"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Item Menu */}
-      {mobileItemMenu && (
-        <div 
-          className="fixed inset-0 z-50 md:hidden"
-          onClick={() => setMobileItemMenu(null)}
-        >
-          <div className="absolute bottom-0 left-0 right-0 bg-gray-900 rounded-t-3xl border-t border-gray-800 p-4 animate-slide-up">
-            <div className="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-4"></div>
-            
-            {(() => {
-              const item = allDisplayMedia.find(m => m._id === mobileItemMenu);
-              if (!item) return null;
-
-              return (
-                <>
-                  <div className="p-4 bg-gray-800/50 rounded-xl mb-4">
-                    <h3 className="text-white font-medium mb-1">{item.originalName}</h3>
-                    <div className="flex items-center space-x-3 text-xs text-gray-400">
-                      <span>{formatFileSize(item.size)}</span>
-                      <span>•</span>
-                      <span>{formatDate(item.createdAt)}</span>
-                      {item.isLocked && <Lock size={12} className="text-blue-400" />}
-                      {item.favorite && <Star size={12} className="text-yellow-400 fill-yellow-400" />}
-                      {item.albumId && <Folder size={12} className="text-blue-400" />}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    {selectedCategory === "Trash" ? (
-                      <>
-                        <button
-                          onClick={() => {
-                            restoreFromTrash(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <RotateCcw size={20} className="text-green-400" />
-                          <span>Restore</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            permanentDelete(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-red-400 transition"
-                        >
-                          <Trash2 size={20} />
-                          <span>Delete permanently</span>
-                        </button>
-                      </>
-                    ) : selectedCategory === "Locked" ? (
-                      <>
-                        <button
-                          onClick={() => {
-                            window.open(item.url, '_blank');
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Download size={20} />
-                          <span>Download</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setSelectedMedia(item);
-                            setNewName(item.originalName);
-                            setShowEditNameModal(true);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Pencil size={20} />
-                          <span>Edit name</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            toggleFavorite(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Star size={20} className={item.favorite ? "text-yellow-400 fill-yellow-400" : ""} />
-                          <span>{item.favorite ? 'Remove from favorites' : 'Add to favorites'}</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            moveToOriginal(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Unlock size={20} className="text-green-400" />
-                          <span>Move to Main Library</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            moveToTrash(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-red-400 transition"
-                        >
-                          <Trash2 size={20} />
-                          <span>Move to trash</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => {
-                            window.open(item.url, '_blank');
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Download size={20} />
-                          <span>Download</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setSelectedMedia(item);
-                            setNewName(item.originalName);
-                            setShowEditNameModal(true);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Pencil size={20} />
-                          <span>Edit name</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            toggleFavorite(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Star size={20} className={item.favorite ? "text-yellow-400 fill-yellow-400" : ""} />
-                          <span>{item.favorite ? 'Remove from favorites' : 'Add to favorites'}</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            handleMoveToAlbum(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <FolderPlus size={20} className="text-blue-400" />
-                          <span>Move to Album/Folder</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            toggleLock(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-gray-300 transition"
-                        >
-                          <Lock size={20} />
-                          <span>{item.isLocked ? 'Unlock' : 'Lock'}</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            moveToTrash(item._id);
-                            setMobileItemMenu(null);
-                          }}
-                          className="w-full flex items-center space-x-3 p-4 hover:bg-gray-800 rounded-xl text-red-400 transition"
-                        >
-                          <Trash2 size={20} />
-                          <span>Move to trash</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => setMobileItemMenu(null)}
-                    className="w-full mt-4 p-4 bg-gray-800 hover:bg-gray-700 rounded-xl text-white transition"
-                  >
-                    Close
-                  </button>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       <UploadModal
@@ -4414,161 +2345,26 @@ const DashboardPage = () => {
         previews={previews}
         isUploading={isUploading}
         uploadProgress={uploadProgress}
-        onFileSelect={handleFileSelect}
-        onUpload={handleUpload}
+        onFileSelect={(e) => {
+          if (e.target.files) {
+            setFiles(Array.from(e.target.files));
+          }
+        }}
+        onUpload={async (e) => {
+          e.preventDefault();
+          toast.success('Upload feature coming soon!');
+          setShowUploadModal(false);
+        }}
         formatFileSize={formatFileSize}
         setFiles={setFiles}
         setPreviews={setPreviews}
-        currentAlbumId={selectedAlbum?._id}
-        currentAlbumName={selectedAlbum?.name}
       />
-
-      <CreateAlbumModal
-        show={showCreateAlbum}
-        onClose={() => {
-          setShowCreateAlbum(false);
-          setNewAlbumName("");
-          setNewAlbumDescription("");
-        }}
-        albumName={newAlbumName}
-        albumDescription={newAlbumDescription}
-        onNameChange={setNewAlbumName}
-        onDescriptionChange={setNewAlbumDescription}
-        onCreate={handleCreateAlbum}
-      />
-
-      <CreateFolderModal
-        show={showCreateFolderModal}
-        onClose={() => {
-          setShowCreateFolderModal(false);
-          setNewFolderName("");
-        }}
-        folderName={newFolderName}
-        albumName={selectedAlbum?.name || ""}
-        onNameChange={setNewFolderName}
-        onCreate={handleCreateFolder}
-        parentAlbumId={selectedAlbum?._id}
-      />
-
-      <PasswordModal
-        show={showPasswordModal}
-        onClose={() => {
-          setShowPasswordModal(false);
-          setPasswordError('');
-          setLockPassword('');
-          setLockState({
-            isLocked: false,
-            password: '',
-            confirmPassword: '',
-            showPassword: false,
-            showConfirmPassword: false
-          });
-        }}
-        hasLockedAccess={hasLockedAccess}
-        hasLockPassword={hasLockPassword}
-        lockPassword={lockPassword}
-        lockState={lockState}
-        passwordError={passwordError}
-        isSettingPassword={isSettingPassword}
-        showLockPassword={showLockPassword}
-        onLockPasswordChange={setLockPassword}
-        onLockStateChange={setLockState}
-        onShowLockPasswordChange={setShowLockPassword}
-        onSetPassword={handleSetPassword}
-        onVerifyPassword={handleVerifyPassword}
-        timeLeft={accessTimeLeft}
-      />
-
-      <EditNameModal
-        show={showEditNameModal}
-        onClose={() => {
-          setShowEditNameModal(false);
-          setNewName("");
-        }}
-        currentName={newName}
-        onNameChange={setNewName}
-        onSave={handleEditName}
-      />
-
-      <MoveModal
-        show={showMoveModal}
-        onClose={() => {
-          setShowMoveModal(false);
-          setMediaToMove(null);
-          setSelectedTargetAlbum(null);
-          setCurrentFolderPath([]);
-        }}
-        albumTree={albumTree}
-        currentFolderPath={currentFolderPath}
-        setCurrentFolderPath={setCurrentFolderPath}
-        selectedTargetAlbum={selectedTargetAlbum}
-        setSelectedTargetAlbum={setSelectedTargetAlbum}
-        onMove={(targetId) => {
-          if (mediaToMove) {
-            moveMediaToAlbum(mediaToMove, targetId);
-          }
-        }}
-        isMoving={false}
-      />
-
-      {showMediaModal && selectedMedia && (
-        <MediaModal
-          media={selectedMedia}
-          onClose={() => {
-            setShowMediaModal(false);
-            setShowMediaSidePanel(false);
-            setSelectedMedia(null);
-            setCurrentMediaIndex(-1);
-          }}
-          showSidePanel={showMediaSidePanel}
-          onToggleSidePanel={() => setShowMediaSidePanel(!showMediaSidePanel)}
-          selectedCategory={selectedCategory}
-          onToggleFavorite={toggleFavorite}
-          onToggleLock={toggleLock}
-          onMoveToOriginal={moveToOriginal}
-          onMoveToAlbum={handleMoveToAlbum}
-          onMoveToTrash={moveToTrash}
-          onRestore={restoreFromTrash}
-          onPermanentDelete={permanentDelete}
-          onEditName={() => {
-            setShowEditNameModal(true);
-            setShowMediaSidePanel(false);
-          }}
-          formatFileSize={formatFileSize}
-          formatDate={formatDate}
-          toggleFullscreen={toggleFullscreen}
-          onPrevious={handlePreviousMedia}
-          onNext={handleNextMedia}
-          hasPrevious={currentMediaIndex > 0}
-          hasNext={currentMediaIndex < allDisplayMedia.length - 1}
-          totalMedia={allDisplayMedia.length}
-          currentIndex={currentMediaIndex + 1}
-        />
-      )}
     </div>
   );
 };
 
-// Add animation styles
+// ==================== ANIMATION STYLES ====================
 const styles = `
-  @keyframes slide-right {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slide-up {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -4578,14 +2374,6 @@ const styles = `
       opacity: 1;
       transform: translateY(0);
     }
-  }
-
-  .animate-slide-right {
-    animation: slide-right 0.3s ease-out;
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.3s ease-out;
   }
 
   .animate-fade-in {
